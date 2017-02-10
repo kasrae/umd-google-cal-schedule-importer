@@ -13,16 +13,35 @@ function getSemesterLastDay() {
 
 function DOMtoString(document_root) {
     var html = '',
-        ccontainers = document_root.getElementsByClassName("course-card-container--info"),
-        courseEventInfo = new Array();
-    if (ccontainers.length == 0) {
-        html = "Please navigate to the Testudo Show Schedule page";
+		entireCourseContainer = document_root.getElementsByClassName("listViewWrapper");
+        courseInfoContainer = document_root.getElementsByClassName("list-view-course-info-div"), 
+        meetingInfoContainer = document_root.getElementsByClassName("listViewMeetingInformation")
+		courseEventInfo = new Array();
+    if (entireCourseContainer == 0) {
+        html = "Please navigate to the [Drop/Add] Register for Classes page, and select your term.";
         validPage = false;
     } else {
         validPage = true;
     }
 
-    for(i = 0 ; i < ccontainers.length; i++) {
+    for(i = 0 ; i < entireCourseContainer.length; i++) {
+		
+    //i.e. Data Structures and Algorithms
+	  var classTitle = courseInfoContainer[i].getELementsByClassName("list-view-course-title")[0].innerText;//this should work, might need to go one node deeper
+
+    //i.e. Computer Science 3114 Section 0
+	  var classSubjectAndSection = courseInfoContainer[i].getELementsByClassName("list-view-subj-course-section")[0].innerText;
+	  
+	  //Separated by commas ie: Monday, Wednesday
+	  var meetingDates = meetingInfoContainer[i].getElementsByClassName("ui-pillbox-summary screen-reader")[0].innerText;
+	  
+    //span[2] in listViewMeetingInformatino = meeting times
+
+    var meetingTimes = meetingInfoContainer[i].getElementsByTagName("span")[2].innerText;
+
+    //must parse this to find location, building, and room (no tag elements, lies within the entire wrapper)
+    var meetingInformationEntireString = meetingInfoContainter[i];
+	  
       // append to output (html) with "END" as separator
       var courseInfo = ccontainers[i].innerText.substring(1);
       html += courseInfo + "END";

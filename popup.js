@@ -1,10 +1,10 @@
 var importButtonHTML = '<button id="import-button" class="btn red accent-4">Import Schedule</button>'
 var authenticateButtonHTML = '<button id="authenticate-button" class="btn red accent-4">Allow Google Calendar Access</button>'
-var testudoLinkButtonHTML = '<button id="testudo-link-button" class="btn red accent-4">Take me to Testudo!</button>'
+var hokieSpaLinkButtonHTML = '<button id="testudo-link-button" class="btn red accent-4">Take me to Hokie Spa!</button>'
 
 
-function goToTestudo() {
-  chrome.tabs.create({url: "https://ntst.umd.edu/commonLogin?return-url=https%3A%2F%2Fntst.umd.edu%2Ftestudo%2Fmain%2FdropAdd"});
+function goToHokieSpa() {
+  chrome.tabs.create({url: "https://banweb.banner.vt.edu/ssb/prod/twbkwbis.P_WWWLogin"});
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender) {
@@ -95,7 +95,7 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
     } else {
       // Commented code gets the URL of the current tab open.
       chrome.tabs.getSelected(null, function(tab) {
-        if (tab.url.includes("ntst.umd.edu")) {
+        if (tab.url.includes("banweb.banner.vt.edu")) { //
           // In schedule system but not at schedule page yet
           pagecodediv.innerHTML = "You're almost there! Navigate to the show schedule page as shown below:";
           document.querySelector('#import-button').remove();
@@ -107,7 +107,7 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
           pagecodediv.innerHTML += '<br/><br/><img src="show-schedule-page-example.png" style="max-width:100%">';
           
           document.querySelector('#import-button').remove();
-          document.querySelector('#button-div').innerHTML = testudoLinkButtonHTML;
+          document.querySelector('#button-div').innerHTML = hokieSpaLinkButtonHTML;
           
           document.getElementById('testudo-link-button').addEventListener('click', function() {
             goToTestudo();
@@ -263,9 +263,9 @@ document.addEventListener('DOMContentLoaded', function() {
       
       pagecodediv.innerHTML += "Please make sure you're on the Testudo Show Schedule page as shown below:";
       pagecodediv.innerHTML += '<br/><br/><img src="show-schedule-page-example.png" style="max-width:100%">';
-      document.querySelector('#button-div').innerHTML = testudoLinkButtonHTML;
+      document.querySelector('#button-div').innerHTML = hokieSpaLinkButtonHTML;
       document.getElementById('testudo-link-button').addEventListener('click', function() {
-        goToTestudo();
+        goToHokieSpa();
       });
     }
   });
