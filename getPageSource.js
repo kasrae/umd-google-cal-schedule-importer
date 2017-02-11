@@ -11,105 +11,76 @@ function getSemesterLastDay() {
   return new Date ("May 11, 2017");
 }
 
+//trim leading and trailing white spaces
+function trim (str) {
+    str = str.replace(/^\s+/, '');
+    for (var i = str.length - 1; i >= 0; i--) {
+        if (/\S/.test(str.charAt(i))) {
+            str = str.substring(0, i + 1);
+            break;
+        }
+    }
+    return str;
+}
+
+function parseMeetingLocationBuildRoom (str) {
+  var start = str.indexOf("Location");
+  str = str.slice(start);
+  return str;
+}
+
 function DOMtoString(document_root) {
-    var html = '',
-		entireCourseContainer = document_root.getElementsByClassName("listViewWrapper");
-        courseInfoContainer = document_root.getElementsByClassName("list-view-course-info-div"), 
-        meetingInfoContainer = document_root.getElementsByClassName("listViewMeetingInformation")
-		courseEventInfo = new Array();
-    if (entireCourseContainer == 0) {
-        html = "Please navigate to the [Drop/Add] Register for Classes page, and select your term.";
+    var html = '';
+		var entireCourseContainer = document_root.getElementsByClassName("listViewWrapper");
+    //console.log(entireCourseContainer[0].getElementsByClassName("section-details-link")[0].innerText); 
+    var courseInfoContainer = document_root.getElementsByClassName("list-view-course-info-div");
+    //console.log(courseInfoContainer[0].innerText); 
+    var meetingInfoContainer = document_root.getElementsByClassName("listViewMeetingInformation");
+		//courseEventInfo = new Array();
+    if (entireCourseContainer.length == 0 && courseInfoContainer.length == 0) {
+        html = "Please navigate to the [Drop/Add] Register for Classes page, and select your term. Click on schedule details, and boom!";
         validPage = false;
     } else {
         validPage = true;
     }
 
     for(i = 0 ; i < entireCourseContainer.length; i++) {
-		
     //i.e. Data Structures and Algorithms
-	  var classTitle = courseInfoContainer[i].getELementsByClassName("list-view-course-title")[0].innerText;//this should work, might need to go one node deeper
-
+    var classTitle = trim(entireCourseContainer[i].getElementsByClassName("section-details-link")[0].innerText);
+    console.log(classTitle);
     //i.e. Computer Science 3114 Section 0
-	  var classSubjectAndSection = courseInfoContainer[i].getELementsByClassName("list-view-subj-course-section")[0].innerText;
-	  
-	  //Separated by commas ie: Monday, Wednesday
-	  var meetingDates = meetingInfoContainer[i].getElementsByClassName("ui-pillbox-summary screen-reader")[0].innerText;
-	  
-    //span[2] in listViewMeetingInformatino = meeting times
+    var sectionDetails = trim(entireCourseContainer[i].getElementsByClassName("list-view-subj-course-section")[0].innerText);
+    console.log(sectionDetails);
 
-    var meetingTimes = meetingInfoContainer[i].getElementsByTagName("span")[2].innerText;
+	  //Separated by commas ie: Monday, Wednesday
+	  var meetingDays = trim(meetingInfoContainer[i].getElementsByClassName("ui-pillbox-summary screen-reader")[0].innerText);
+	  console.log(meetingDays);
+
+    //span[2] in listViewMeetingInformation = meeting times i.e. 02:30 PM - 03:45 PM
+    var meetingTimes = trim(meetingInfoContainer[i].getElementsByTagName("span")[2].innerText);
+    console.log(meetingTimes);
 
     //must parse this to find location, building, and room (no tag elements, lies within the entire wrapper)
-    var meetingInformationEntireString = meetingInfoContainter[i];
+    var locBuildRoom = trim(parseMeetingLocationBuildRoom(meetingInfoContainer[i].innerText));
+
+    var locationIndex = locBuildRoom.indexOf("Location");
+    var buildingIndex = locBuildRoom.indexOf("Building");
+    var roomIndex = locBuildRoom.indexOf("Room");
+
+    var locationStr = locBuildRoom.slice(locationIndex, buildingIndex);
+    var location = trim(locationStr.slice(locationStr.indexOf(":") + 1));
+    console.log(location);
+    var buildingStr = locBuildRoom.slice(buildingIndex, roomIndex);
+    var building = trim(buildingStr.slice(buildingStr.indexOf(":") + 1));
+    console.log(building);
+    var roomStr = locBuildRoom.slice(roomIndex);
+    var room = trim(roomStr.slice(roomStr.indexOf(":") + 1));
+    console.log(room);
+
 	  
       // append to output (html) with "END" as separator
       var courseInfo = ccontainers[i].innerText.substring(1);
       html += courseInfo + "END";
-
-      /*4 letters, space, 3 numbers + letter (optional), space, (4 characters)
-      each 3 lines is group:
-      // Lec or Dis (the entire line)
-      // M/T/W/Th/F (each optional), ##:##(a/p)m - ##:##(a/p)m
-      // Location: capital letters, space, numbers OR "ONLINE"
-      Final
-      TBA/something else
-      */
-
-      /*BMGT 350 (BL06)
-      Lec
-      W 11:00am - 12:15pm
-      VMH 1330
-      Lec
-      TBA
-      ONLINE
-      Final
-      TBA*/
-
-      /*BMGT 350 (BL06)
-      Lec
-      W 11:00am - 12:15pm
-      VMH 1330
-      Lec
-      TBA
-      ONLINE
-      Final
-      TBA
-
-      CMSC 389K (0101)
-      Lec
-      F 3:00pm - 3:50pm
-      CSI 1122
-      Final
-      TBA
-
-      CMSC 420 (0101)
-      Lec
-      MW 2:00pm - 3:15pm
-      CSI 2117
-      Final
-      TBA
-
-      ECON 201 (0201)
-      Lec
-      TTh 3:30pm - 4:45pm
-      TYD 0130
-      Final
-      TBA
-
-      HEIP 241 (0101)
-      Lec
-      MW 5:00pm - 5:50pm
-      LPA 1125
-      Final
-      TBA
-
-      HONR 248J (0101)
-      Lec
-      TTh 11:00am - 12:15pm
-      KNI 1105
-      Final
-      TBA
-      */
 
       // Parse each course
       courseLines = courseInfo.split("\n")
@@ -232,3 +203,68 @@ chrome.runtime.sendMessage({
     action: "getSource",
     source: DOMtoString(document)
 });
+
+/*4 letters, space, 3 numbers + letter (optional), space, (4 characters)
+      each 3 lines is group:
+      // Lec or Dis (the entire line)
+      // M/T/W/Th/F (each optional), ##:##(a/p)m - ##:##(a/p)m
+      // Location: capital letters, space, numbers OR "ONLINE"
+      Final
+      TBA/something else
+      */
+
+      /*BMGT 350 (BL06)
+      Lec
+      W 11:00am - 12:15pm
+      VMH 1330
+      Lec
+      TBA
+      ONLINE
+      Final
+      TBA*/
+
+      /*BMGT 350 (BL06)
+      Lec
+      W 11:00am - 12:15pm
+      VMH 1330
+      Lec
+      TBA
+      ONLINE
+      Final
+      TBA
+
+      CMSC 389K (0101)
+      Lec
+      F 3:00pm - 3:50pm
+      CSI 1122
+      Final
+      TBA
+
+      CMSC 420 (0101)
+      Lec
+      MW 2:00pm - 3:15pm
+      CSI 2117
+      Final
+      TBA
+
+      ECON 201 (0201)
+      Lec
+      TTh 3:30pm - 4:45pm
+      TYD 0130
+      Final
+      TBA
+
+      HEIP 241 (0101)
+      Lec
+      MW 5:00pm - 5:50pm
+      LPA 1125
+      Final
+      TBA
+
+      HONR 248J (0101)
+      Lec
+      TTh 11:00am - 12:15pm
+      KNI 1105
+      Final
+      TBA
+      */
