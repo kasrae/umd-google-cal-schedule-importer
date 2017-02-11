@@ -3,12 +3,12 @@
 
 function getSemesterFirstDay() {
   // TODO dynamically get this using web scraping from https://www.provost.umd.edu/calendar/16.cfm
-  return new Date ("January 25, 2017");
+  return new Date ("January 17, 2017");
 }
 
 function getSemesterLastDay() {
   // TODO dynamically get this using web scraping from https://www.provost.umd.edu/calendar/16.cfm
-  return new Date ("May 11, 2017");
+  return new Date ("May 13, 2017");
 }
 
 //trim leading and trailing white spaces
@@ -36,7 +36,14 @@ function DOMtoString(document_root) {
     var courseInfoContainer = document_root.getElementsByClassName("list-view-course-info-div");
     //console.log(courseInfoContainer[0].innerText); 
     var meetingInfoContainer = document_root.getElementsByClassName("listViewMeetingInformation");
-		//courseEventInfo = new Array();
+		
+    var moreInfoContainer = document_root.getElementsByClassName("list-view-crn-info-div gray-background");
+    var CRNContainer = document_root.getElementsByClassName("list-view-crn-schedule");
+    console.log(moreInfoContainer[0].innerText);
+
+    courseEventInfo = new Array();
+
+
     if (entireCourseContainer.length == 0 && courseInfoContainer.length == 0) {
         html = "Please navigate to the [Drop/Add] Register for Classes page, and select your term. Click on schedule details, and boom!";
         validPage = false;
@@ -48,17 +55,10 @@ function DOMtoString(document_root) {
     //i.e. Data Structures and Algorithms
     var classTitle = trim(entireCourseContainer[i].getElementsByClassName("section-details-link")[0].innerText);
     console.log(classTitle);
-    //i.e. Computer Science 3114 Section 0
+    //i.e. Computer Science 3114
     var sectionDetails = trim(entireCourseContainer[i].getElementsByClassName("list-view-subj-course-section")[0].innerText);
+    sectionDetails = trim(sectionDetails.slice(0, sectionDetails.indexOf("Section") - 1));
     console.log(sectionDetails);
-
-	  //Separated by commas ie: Monday, Wednesday
-	  var meetingDays = trim(meetingInfoContainer[i].getElementsByClassName("ui-pillbox-summary screen-reader")[0].innerText);
-	  console.log(meetingDays);
-
-    //span[2] in listViewMeetingInformation = meeting times i.e. 02:30 PM - 03:45 PM
-    var meetingTimes = trim(meetingInfoContainer[i].getElementsByTagName("span")[2].innerText);
-    console.log(meetingTimes);
 
     //must parse this to find location, building, and room (no tag elements, lies within the entire wrapper)
     var locBuildRoom = trim(parseMeetingLocationBuildRoom(meetingInfoContainer[i].innerText));
@@ -68,74 +68,71 @@ function DOMtoString(document_root) {
     var roomIndex = locBuildRoom.indexOf("Room");
 
     var locationStr = locBuildRoom.slice(locationIndex, buildingIndex);
+    console.log()
     var location = trim(locationStr.slice(locationStr.indexOf(":") + 1));
-    console.log(location);
+    console.log("location: " + location);
     var buildingStr = locBuildRoom.slice(buildingIndex, roomIndex);
     var building = trim(buildingStr.slice(buildingStr.indexOf(":") + 1));
-    console.log(building);
+    console.log("building: " + building);
     var roomStr = locBuildRoom.slice(roomIndex);
     var room = trim(roomStr.slice(roomStr.indexOf(":") + 1));
-    console.log(room);
+    console.log("room: " + room);
 
-	  
-      // append to output (html) with "END" as separator
-      var courseInfo = ccontainers[i].innerText.substring(1);
-      html += courseInfo + "END";
+    var typeIndex = moreInfoContainer[i].innerText.indexOf("Schedule Type:") + 15;
+    var methodIndex = moreInfoContainer[i].innerText.indexOf("| Instructional Method:");
+    //var endMethodIndex = moreInfoContainer[i].innerText.indexOf("| Grade Mode:") - 1;
+    var classType = moreInfoContainer[i].innerText.slice(typeIndex, methodIndex);
 
-      // Parse each course
-      courseLines = courseInfo.split("\n")
-      var classTypes = new Array();
-      var timeLines = new Array();
-      var roomLocations = new Array();
-      for (j = 0; j < courseLines.length; j++) {
-        var line = courseLines[j];
+    var methodType = trim(moreInfoContainer[i].innerText.slice(typeIndex, methodIndex));
+    //var instructionType = trim(moreInfoContainer[i].innerText.slice(methodIndex + 23, endMethodIndex));
+    console.log("Method type is: " + methodType);
 
-        if (j == 0) {  // Course Title
-          var firstLine = line.split(" ");
-          courseTitle = firstLine[0] + " " + firstLine[1];
-          sectionCode = firstLine[2].substring(1,firstLine[2].length-1);
-        } else if (line == "Lec" || line == "Dis" || line == "Lab") {
-          if (courseLines[j+1] == "TBA") {  /* if time is TBA */
-            // do nothing.
-          } else {  // other info
-            classTypes.push(courseLines[j]);
-            timeLines.push(courseLines[j+1]);
-            roomLocations.push(courseLines[j+2]);
-          }
-        } else if (line == "Final") { // end here; we don't want the final because generally not available yet
-          break;
-        }
-      }
+    var CRN = trim(CRNContainer[i].innerText);
+    console.log("CRN: " + CRN);
 
-      // reformat data into usable variables
-      for (j = 0; j < timeLines.length; j++) {
-        // set starting variables
-        classType = classTypes[j];
-        timeLine = timeLines[j];
-        roomLocation = roomLocations[j];
+    var meetingDays = "";
+    var meetingTimes = "";
+    var startTime = "";
+    var endTime ="";
+    courseLocation = "";
+    if (location.includes("None") && building.includes("None") && room.includes("None")) { //online course
+      meetingDays = "None";
+      meetingTimes = "None";
+      startTime = "None";
+      endTime = "None";
+      courseLocation = "ONLINE";
+      
+    }
+    else {
+      meetingDays = trim(meetingInfoContainer[i].getElementsByClassName("ui-pillbox-summary screen-reader")[0].innerText);
+  
+      //span[2] in listViewMeetingInformation = meeting times i.e. 02:30 PM - 03:45 PM
+      meetingTimes = trim(meetingInfoContainer[i].getElementsByTagName("span")[2].innerText);
+      startTime = trim(meetingTimes.slice(0, meetingTimes.indexOf(" -")));
+      endTime = trim(meetingTimes.slice(meetingTimes.indexOf("-") + 1));
+      courseLocation = location + ", " + building + " Room " + room;
+    }
+    
+    courseTitle = sectionDetails + " " + classTitle;
+    sectionCode = CRN;
+    courseType = classType;
+    courseStartTime = startTime; //renamed start time. could be time or "None"
+    courseEndTime = endTime; //renamed "could be time or "None"
+    daysStr = meetingDays; //meetingDays or "None"
+    
+      // separate out timecodes and parse into integers
+      startHour = courseStartTime.includes("None") ? 0 : parseInt(courseStartTime.match(/(\d+)/g)[0]);
+      startMin = courseStartTime.includes("None") ? 0 : parseInt(courseStartTime.match(/(\d+)/g)[1]);
+      startPmAm = courseStartTime.includes("None") ? "None" : courseStartTime.substr(-2);
+      endHour = courseEndTime.includes("None") ? 0 : parseInt(courseEndTime.match(/(\d+)/g)[0]);
+      endMin = courseEndTime.includes("None") ? 0 : parseInt(courseEndTime.match(/(\d+)/g)[1]);
+      endPmAm = courseEndTime.includes("None") ? "None" : courseEndTime.substr(-2);
 
-        // parse class time
-        // M/T/W/Th/F (each optional), ##:##(a/p)m - ##:##(a/p)m
-        // W 11:00am - 12:15pm
-        timeLineInfo = timeLine.split(" ");
-        daysStr = timeLineInfo[0];
-        startTime = timeLineInfo[1];
-        endTime = timeLineInfo[3];
+      // get semester start dates
+      semFirstDate = getSemesterFirstDay();
+      semFirstDay = semFirstDate.getDay(); //1 2 3 4 5 6 or 7
 
-        // get semester start dates
-        semFirstDate = getSemesterFirstDay();
-        semFirstDay = semFirstDate.getDay();
-        //semEndDay = // TODO Need or don't need? Look at GCal API repeat requirements
-
-        // separate out timecodes and parse into integers
-        startHour = parseInt(startTime.match(/(\d+)/g)[0]);
-        startMin = parseInt(startTime.match(/(\d+)/g)[1]);
-        startPmAm = startTime.substr(-2);
-        endHour = parseInt(endTime.match(/(\d+)/g)[0]);
-        endMin = parseInt(endTime.match(/(\d+)/g)[1]);
-        endPmAm = endTime.substr(-2);
-
-        // regex to separate each day of the week
+      // regex to separate each day of the week
         daysArray = daysStr.match(/([A-Z][a-z]*)/g)
         classStartDay = 0;  // instantiate the day for comparison with semFirstDay
         for (k = 0; k < daysArray.length; k++) {
@@ -177,6 +174,39 @@ function DOMtoString(document_root) {
             classStartDate.setDate(classStartDate.getDate()+Math.abs(dayOffset));
             classEndDate.setDate(classEndDate.getDate()+Math.abs(dayOffset));
           }
+
+      //Separated by commas ie: Monday, Wednesday
+      console.log(meetingDays);
+
+  
+      console.log("starttime: " + startTime);
+      console.log("endtime: " + endTime);
+      console.log("semFirstDay " + semFirstDay);
+      console.log("startHour: " + startHour);
+      console.log("startMin: " + startMin);
+      console.log("startPmAm: " + startPmAm);
+      console.log("endHour: " + endHour);
+      console.log("endMin: " + endMin);
+      console.log("endPmAm: " + endPmAm);
+      console.log("course location: " + courseLocation);
+  
+
+      // reformat data into usable variables
+      for (j = 0; j < timeLines.length; j++) {
+        // set starting variables
+        classType = classTypes[j];
+        timeLine = timeLines[j];
+        roomLocation = roomLocations[j];
+
+        // parse class time
+        // M/T/W/Th/F (each optional), ##:##(a/p)m - ##:##(a/p)m
+        // W 11:00am - 12:15pm
+        timeLineInfo = timeLine.split(" ");
+        daysStr = timeLineInfo[0];
+        startTime = timeLineInfo[1];
+        endTime = timeLineInfo[3];
+        
+        
 
           // store individual event's data in json format
           courseEventInfo.push({
