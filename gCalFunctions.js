@@ -1,6 +1,6 @@
 // Your Client ID can be retrieved from your project in the Google
 // Developer Console, https://console.developers.google.com
-var CLIENT_ID = '373135660634-coceei1hk8q56j42sisdvoqbfrue4qsc.apps.googleusercontent.com';
+var CLIENT_ID = '175200559313-e0mluqnvuu7tlkqlf2bm13hjep0q5nhf.apps.googleusercontent.com';
 
 var SCOPES = ["https://www.googleapis.com/auth/calendar"];
 
@@ -121,7 +121,7 @@ function listUpcomingEvents() {
 function createCalendar() {
   console.log("In createCalendar()");
   var request = gapi.client.calendar.calendars.insert({
-    'summary': 'UMD Schedule',
+    'summary': 'VT Schedule',
     'timezone': 'America/New_York'
   });
   

@@ -1,6 +1,6 @@
 var importButtonHTML = '<button id="import-button" class="btn red accent-4">Import Schedule</button>'
 var authenticateButtonHTML = '<button id="authenticate-button" class="btn red accent-4">Allow Google Calendar Access</button>'
-var hokieSpaLinkButtonHTML = '<button id="testudo-link-button" class="btn red accent-4">Take me to Hokie Spa!</button>'
+var hokieSpaLinkButtonHTML = '<button id="hokiespa-link-button" class="btn red accent-4">Take me to Hokie Spa!</button>'
 
 
 function goToHokieSpa() {
@@ -109,8 +109,8 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
           document.querySelector('#import-button').remove();
           document.querySelector('#button-div').innerHTML = hokieSpaLinkButtonHTML;
           
-          document.getElementById('testudo-link-button').addEventListener('click', function() {
-            goToTestudo();
+          document.getElementById('hokiespa-link-button').addEventListener('click', function() {
+            goToHokieSpa();
           });
         }
       });
@@ -140,7 +140,7 @@ function importSchedule() {
     // POST request to create a new calendar
     var url = "https://www.googleapis.com/calendar/v3/calendars";
     var params = {
-      "summary": "UMD Schedule",
+      "summary": "VT Schedule",
       "timeZone": "America/New_York"
     };
     var xhr = new XMLHttpRequest();
@@ -236,9 +236,6 @@ function postImportActions() {
   window.open('https://calendar.google.com/calendar/render#main_7%7Cmonth','_blank');
 }
 
-
-
-
 function onWindowLoad() {
   // TODO onWindowLoad stuff -- do we need it?
 }
@@ -261,12 +258,13 @@ document.addEventListener('DOMContentLoaded', function() {
         pagecodediv.innerText += '<br/><br/>';
       }
       
-      pagecodediv.innerHTML += "Please make sure you're on the Testudo Show Schedule page as shown below:";
+      pagecodediv.innerHTML += "Please make sure you're on the Hokie Spa Show Schedule page as shown below:";
       pagecodediv.innerHTML += '<br/><br/><img src="show-schedule-page-example.png" style="max-width:100%">';
       document.querySelector('#button-div').innerHTML = hokieSpaLinkButtonHTML;
-      document.getElementById('testudo-link-button').addEventListener('click', function() {
+      document.getElementById('hokiespa-link-button').addEventListener('click', function() {
         goToHokieSpa();
       });
     }
   });
 }, false);
+

@@ -38,20 +38,22 @@ function DOMtoString(document_root) {
     var meetingInfoContainer = document_root.getElementsByClassName("listViewMeetingInformation");
 		
     var moreInfoContainer = document_root.getElementsByClassName("list-view-crn-info-div gray-background");
-    var CRNContainer = document_root.getElementsByClassName("list-view-crn-schedule");
-    console.log(moreInfoContainer[0].innerText);
-
-    courseEventInfo = new Array();
+    
+    var courseEventInfo = new Array();
 
 
-    if (entireCourseContainer.length == 0 && courseInfoContainer.length == 0) {
+    if (entireCourseContainer.length == 0 && courseInfoContainer.length == 0 && moreInfoContainer.length == 0) {
         html = "Please navigate to the [Drop/Add] Register for Classes page, and select your term. Click on schedule details, and boom!";
         validPage = false;
     } else {
         validPage = true;
     }
 
+
     for(i = 0 ; i < entireCourseContainer.length; i++) {
+
+      var courseInfo = courseInfoContainer[i].innerText;
+      html += courseInfo + "END";
     //i.e. Data Structures and Algorithms
     var classTitle = trim(entireCourseContainer[i].getElementsByClassName("section-details-link")[0].innerText);
     console.log(classTitle);
@@ -59,6 +61,8 @@ function DOMtoString(document_root) {
     var sectionDetails = trim(entireCourseContainer[i].getElementsByClassName("list-view-subj-course-section")[0].innerText);
     sectionDetails = trim(sectionDetails.slice(0, sectionDetails.indexOf("Section") - 1));
     console.log(sectionDetails);
+
+    var CRNContainer = document_root.getElementsByClassName("list-view-crn-schedule");
 
     //must parse this to find location, building, and room (no tag elements, lies within the entire wrapper)
     var locBuildRoom = trim(parseMeetingLocationBuildRoom(meetingInfoContainer[i].innerText));
@@ -79,15 +83,10 @@ function DOMtoString(document_root) {
     console.log("room: " + room);
 
     var typeIndex = moreInfoContainer[i].innerText.indexOf("Schedule Type:") + 15;
-    var methodIndex = moreInfoContainer[i].innerText.indexOf("| Instructional Method:");
-    //var endMethodIndex = moreInfoContainer[i].innerText.indexOf("| Grade Mode:") - 1;
-    var classType = moreInfoContainer[i].innerText.slice(typeIndex, methodIndex);
+    var classTypeToEnd = moreInfoContainer[i].innerText.slice(typeIndex);
+    var classType = classTypeToEnd.substring(0, classTypeToEnd.indexOf("|") - 1);
 
-    var methodType = trim(moreInfoContainer[i].innerText.slice(typeIndex, methodIndex));
-    //var instructionType = trim(moreInfoContainer[i].innerText.slice(methodIndex + 23, endMethodIndex));
-    console.log("Method type is: " + methodType);
-
-    var CRN = trim(CRNContainer[i].innerText);
+    var CRN = trim(CRNContainer[0].innerText);
     console.log("CRN: " + CRN);
 
     var meetingDays = "";
@@ -132,24 +131,29 @@ function DOMtoString(document_root) {
       semFirstDate = getSemesterFirstDay();
       semFirstDay = semFirstDate.getDay(); //1 2 3 4 5 6 or 7
 
-      // regex to separate each day of the week
-        daysArray = daysStr.match(/([A-Z][a-z]*)/g)
-        classStartDay = 0;  // instantiate the day for comparison with semFirstDay
+      //separate each day of the week
+        daysArray = daysStr.split(",");
+        console.log("daysArray length: " + daysArray.length);
+        console.log("daysArray: " + daysArray[0] + " " + daysArray[1]);
+      
         for (k = 0; k < daysArray.length; k++) {
+
+         classStartDay = 0;  // instantiate the day for comparison with semFirstDay
+      
           switch(daysArray[k]) {
-            case "M":
+            case "Monday":
               classStartDay = 1;
               break;
-            case "T":
+            case "Tuesday":
               classStartDay = 2;
               break;
-            case "W":
+            case "Wednesday":
               classStartDay = 3;
               break;
-            case "Th":
+            case "Thursday":
               classStartDay = 4;
               break;
-            case "F":
+            case "Friday":
               classStartDay = 5;
               break;
           }
@@ -179,41 +183,24 @@ function DOMtoString(document_root) {
       console.log(meetingDays);
 
   
-      console.log("starttime: " + startTime);
-      console.log("endtime: " + endTime);
-      console.log("semFirstDay " + semFirstDay);
-      console.log("startHour: " + startHour);
-      console.log("startMin: " + startMin);
-      console.log("startPmAm: " + startPmAm);
-      console.log("endHour: " + endHour);
-      console.log("endMin: " + endMin);
-      console.log("endPmAm: " + endPmAm);
-      console.log("course location: " + courseLocation);
+      // console.log("starttime: " + startTime);
+      // console.log("endtime: " + endTime);
+      // console.log("semFirstDay " + semFirstDay);
+      // console.log("startHour: " + startHour);
+      // console.log("startMin: " + startMin);
+      // console.log("startPmAm: " + startPmAm);
+      // console.log("endHour: " + endHour);
+      // console.log("endMin: " + endMin);
+      // console.log("endPmAm: " + endPmAm);
+      // console.log("course location: " + courseLocation);
   
-
-      // reformat data into usable variables
-      for (j = 0; j < timeLines.length; j++) {
-        // set starting variables
-        classType = classTypes[j];
-        timeLine = timeLines[j];
-        roomLocation = roomLocations[j];
-
-        // parse class time
-        // M/T/W/Th/F (each optional), ##:##(a/p)m - ##:##(a/p)m
-        // W 11:00am - 12:15pm
-        timeLineInfo = timeLine.split(" ");
-        daysStr = timeLineInfo[0];
-        startTime = timeLineInfo[1];
-        endTime = timeLineInfo[3];
-        
-        
-
+                
           // store individual event's data in json format
           courseEventInfo.push({
             "courseTitle": courseTitle,
             "section": sectionCode,
-            "classType": classType,
-            "location": roomLocation,
+            "classType": courseType,
+            "location": courseLocation,
             "startDate": classStartDate.toString(),
             "startPmAm": startPmAm,
             "endDate": classEndDate.toString(),
@@ -221,9 +208,8 @@ function DOMtoString(document_root) {
           });
         }
       }
-    }
 
-    // console.log(courseEventInfo);
+    console.log(courseEventInfo);
 
     // TODO also return the json or array holding courses
     return [html, validPage, courseEventInfo,  getSemesterLastDay().toString()];
@@ -233,68 +219,3 @@ chrome.runtime.sendMessage({
     action: "getSource",
     source: DOMtoString(document)
 });
-
-/*4 letters, space, 3 numbers + letter (optional), space, (4 characters)
-      each 3 lines is group:
-      // Lec or Dis (the entire line)
-      // M/T/W/Th/F (each optional), ##:##(a/p)m - ##:##(a/p)m
-      // Location: capital letters, space, numbers OR "ONLINE"
-      Final
-      TBA/something else
-      */
-
-      /*BMGT 350 (BL06)
-      Lec
-      W 11:00am - 12:15pm
-      VMH 1330
-      Lec
-      TBA
-      ONLINE
-      Final
-      TBA*/
-
-      /*BMGT 350 (BL06)
-      Lec
-      W 11:00am - 12:15pm
-      VMH 1330
-      Lec
-      TBA
-      ONLINE
-      Final
-      TBA
-
-      CMSC 389K (0101)
-      Lec
-      F 3:00pm - 3:50pm
-      CSI 1122
-      Final
-      TBA
-
-      CMSC 420 (0101)
-      Lec
-      MW 2:00pm - 3:15pm
-      CSI 2117
-      Final
-      TBA
-
-      ECON 201 (0201)
-      Lec
-      TTh 3:30pm - 4:45pm
-      TYD 0130
-      Final
-      TBA
-
-      HEIP 241 (0101)
-      Lec
-      MW 5:00pm - 5:50pm
-      LPA 1125
-      Final
-      TBA
-
-      HONR 248J (0101)
-      Lec
-      TTh 11:00am - 12:15pm
-      KNI 1105
-      Final
-      TBA
-      */
