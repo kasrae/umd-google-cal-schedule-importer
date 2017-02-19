@@ -1,17 +1,17 @@
 {
   "manifest_version": 2,
 
-  "name": "Chrome client 1",
-  "description": "Imports your VT class schedule to Google Calendar. Created by Timothy Chen and Brandon Berry.",
+  "name": "VT Schedule Google Calendar Importer",
+  "description": "Imports your VT class schedule to Google Calendar.",
   "version": "1.10",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3IQcBTlAOeXqbA9tF0ghPOHbuMzrEA+gXMToAsCfS9BdMEWga0lngagSND6slgD9u0ClLLerLj4bOSHP8Ep38C2d1g792PBm3zpTFlHjC+hWfchhkBSJHuCWzP8U214z2v2VQiZVNM94E4sLxqFjR7BitwAIZvXl+gOQnDlwxOxA+zrY3lns5hJYJg9gyTkHikXKpT1r+jleLXbOtPOr7fAR023yWJGVMyPStLudjBJpkMJqK/6dwbYmAzahIjEx54uumkTn22a8VrDkLGIzk3RZK7iKxGcNgN0gvklzR+ybo6dsSNVr8/ZThyiuzWjcfZKOBkZ9QPIZybuxoK9YlwIDAQAB",
   "browser_action": {
-    "default_icon": "icons/icon19.png",
+    "default_icon": "icons/vtlogo19.png",
     "default_popup": "popup.html"
   },
-  "icons": {  "16": "icons/icon16.png",
-              "48": "icons/icon48.png",
-              "128": "icons/icon128.png" },
+  "icons": {  "16": "icons/vtlogo16.png",
+              "48": "icons/vtlogo48.png",
+              "128": "icons/vtlogo128.png" },
   "permissions": [
     "activeTab",
     "tabs",

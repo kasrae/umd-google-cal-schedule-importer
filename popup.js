@@ -1,6 +1,6 @@
-var importButtonHTML = '<button id="import-button" class="btn red accent-4">Import Schedule</button>'
-var authenticateButtonHTML = '<button id="authenticate-button" class="btn red accent-4">Allow Google Calendar Access</button>'
-var hokieSpaLinkButtonHTML = '<button id="hokiespa-link-button" class="btn red accent-4">Take me to Hokie Spa!</button>'
+var importButtonHTML = '<button id="import-button" style="background-color: #800000;" class="btn">Import Schedule</button>'
+var authenticateButtonHTML = '<button id="authenticate-button" style="background-color: #800000;" class="btn">Allow Google Calendar Access</button>'
+var hokieSpaLinkButtonHTML = '<button id="hokiespa-link-button" style="background-color: #800000;" class="btn">Take me to Hokie Spa!</button>'
 
 
 function goToHokieSpa() {
@@ -56,8 +56,9 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
       prettyOutput += divHTML;
     }
 
+//&& tab.url.includes("apps.es.vt.edu/StudentRegistrationSsb/ssb/classRegistration/classRegistration")
 
-    if (validPage) {    // If page has needed elements
+    if (validPage) {    // If page has needed elements and correct page
       chrome.identity.getAuthToken({}, function(token) {
         if (token==null) {
           // User hasn't authenticated in yet
@@ -96,22 +97,54 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
       // Commented code gets the URL of the current tab open.
       chrome.tabs.getSelected(null, function(tab) {
         if (tab.url.includes("banweb.banner.vt.edu")) { //
+          
           // In schedule system but not at schedule page yet
-          pagecodediv.innerHTML = "You're almost there! Navigate to the show schedule page as shown below:";
+          pagecodediv.innerHTML = "After you've logged in, navigate to the <b>Hokie Spa</b> tab and click on the <b>Registration (Add/Drop) and Schedule</b> link as shown below:";
           document.querySelector('#import-button').remove();
           
-          pagecodediv.innerHTML += '<br/><br/><img src="show-schedule-page-example.png" style="max-width:100%">';
+          pagecodediv.innerHTML += '<br/><br/><img src="hokieSpaRegistration.png" style="max-width:100%">';
         } else {
           // Not at schedule system yet
-          pagecodediv.innerHTML = 'Please navigate to the Testudo Show Schedule page as shown below:';
-          pagecodediv.innerHTML += '<br/><br/><img src="show-schedule-page-example.png" style="max-width:100%">';
-          
           document.querySelector('#import-button').remove();
-          document.querySelector('#button-div').innerHTML = hokieSpaLinkButtonHTML;
+          var invalidPageUrl = "apps.es.vt.edu/StudentRegistrationSsb/ssb/";
+
+          if (tab.url.includes(invalidPageUrl + "term/termSelection?mode=preReg") 
+          || tab.url.includes(invalidPageUrl + "prepareRegistration/prepareRegistration")
+          || tab.url.includes(invalidPageUrl + "term/termSelection?mode=search")
+          || tab.url.includes(invalidPageUrl + "classSearch/classSearch")
+          || tab.url.includes(invalidPageUrl + "term/termSelection?mode=courseSearch")
+          || tab.url.includes(invalidPageUrl + "courseSearch/courseSearch")
+          || tab.url.includes(invalidPageUrl + "registrationHistory/registrationHistory")) {
+            pagecodediv.innerHTML = 'Wrong way! Go back and click on the <b>[Drop/Add] Register for Classes</b> link as shown below:';
+            pagecodediv.innerHTML += '<br/><br/><img src="dropAddPreSchedule.png" style="max-width:100%">';
+          } else if (tab.url.includes("login.vt.edu")) {
+            pagecodediv.innerHTML = 'Proceed to login with 2-factor';
+          }
+          else if (tab.url.includes(invalidPageUrl + "registration")) {
+            pagecodediv.innerHTML = 'Almost there! Click on the <b>[Drop/Add] Register for Classes</b> link as shown below:';
+            pagecodediv.innerHTML += '<br/><br/><img src="dropAddPreSchedule.png" style="max-width:100%">';
+          }
+          else if (tab.url.includes(invalidPageUrl + "term/termSelection?mode=registration")) {
+            pagecodediv.innerHTML = 'Select your current term!';
+            pagecodediv.innerHTML += '<br/><br/><img src="termPage.png" style="max-width:100%">';
+          }
+          else if (tab.url.includes(invalidPageUrl + "classRegistration/classRegistration")) {
+            pagecodediv.innerHTML = 'Navigate to the <i>Schedule Details</i> tab, and come back to approve your schedule to import!';
+            pagecodediv.innerHTML += '<br/><br/><img src="scheduleDetailsPage.png" style="max-width:100%">';
+          }
+          else { //not within school system 
+             pagecodediv.innerHTML = 'Please navigate to Hokie Spa as shown below:';
+             pagecodediv.innerHTML += '<br/><br/><img src="hokieSpa.png" style="max-width:100%">';
+             document.querySelector('#button-div').innerHTML = hokieSpaLinkButtonHTML;
           
-          document.getElementById('hokiespa-link-button').addEventListener('click', function() {
-            goToHokieSpa();
-          });
+            document.getElementById('hokiespa-link-button').addEventListener('click', function() {
+              goToHokieSpa();
+            });
+          }
+         
+          
+          
+          
         }
       });
     }
@@ -159,7 +192,7 @@ function importSchedule() {
             importEvents(newCalId, token);
           } else {
             console.log("Error", xhr.statusText);
-            pagecodediv.innerText = 'Uh Oh! Something went wrong...Sorry about the inconvenience! Feel free to shoot tchen112@terpmail.umd.edu an email so we know we\'re down!';
+            pagecodediv.innerText = 'Uh Oh! Something went wrong...Sorry about the inconvenience! Feel free to shoot kasrae9@vt.edu an email so we know we\'re down!';
             document.querySelector('#import-button').remove();
           }
         }
@@ -183,11 +216,11 @@ function importEvents(calId, token) {
 
     // Set start/end dates taking into consideration am/pm
     var startDate = (new Date(course.startDate))
-    if (course.startPmAm == "pm" && parseInt(startDate.getHours()) < 12) {
+    if (course.startPmAm == "PM" && parseInt(startDate.getHours()) < 12) {
       startDate.setHours(startDate.getHours()+12);
     }
     var endDate = (new Date(course.endDate))
-    if (course.endPmAm == "pm" && parseInt(endDate.getHours()) < 12) {
+    if (course.endPmAm == "PM" && parseInt(endDate.getHours()) < 12) {
       endDate.setHours(endDate.getHours()+12);
     }
 
@@ -259,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       pagecodediv.innerHTML += "Please make sure you're on the Hokie Spa Show Schedule page as shown below:";
-      pagecodediv.innerHTML += '<br/><br/><img src="show-schedule-page-example.png" style="max-width:100%">';
+      pagecodediv.innerHTML += '<br/><br/><img src="hokieSpa.png" style="max-width:100%">';
       document.querySelector('#button-div').innerHTML = hokieSpaLinkButtonHTML;
       document.getElementById('hokiespa-link-button').addEventListener('click', function() {
         goToHokieSpa();
